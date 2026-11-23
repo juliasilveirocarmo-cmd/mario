@@ -1,0 +1,44 @@
+* {
+    margem : 0 ;
+    preenchimento : 0 ;
+    box-sizing : border-box ;
+    }
+    
+    corpo {
+    família-da-fonte : Arial , sem serifa ;
+    fundo : # eef2f5 ;
+    cor : # 263238 ;
+    }
+    
+    cabeçalho {
+    fundo : # 123c52 ;
+    cor : branca ;
+    alinhamento-do-texto : centralizado ;
+    preenchimento : 25 px 10 px ;
+    }
+    
+    cabeçalho h1 {
+    margem-inferior : 10 px ;
+    }
+    
+    principal {
+    largura : 95 % ;
+    largura máxima : 1100 px ;
+    margem : 25 px automática ;
+    }
+    
+    . painel , . regras {
+    fundo : branco ;
+    preenchimento : 20 px ;
+    raio da borda : 12 px ;
+    margem-inferior : 20 px ;
+    box-shadow : 0 3 px 10 px # 0002 ;
+    }
+    
+    . painel h2 , . regras h2 {
+    margem-inferior : 15 px ;
+    }
+    
+    . botoes {
+    exibição : flexível ;
+    flex-wrap : envolver ;

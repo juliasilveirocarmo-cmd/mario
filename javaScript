@@ -1,0 +1,39 @@
+// ==========================================
+// SIMULADOR DE TRÂNSITO INTELIGENTE
+// Projeto: Tema 2
+// ==========================================
+
+// 1. VARIÁVEIS DO SISTEMA
+
+let máquina = false ;
+let fase = "NS" ;
+let tempoRestante = 12 ;
+let solicitaçãoPedestre = false ;
+seja totalTravessias = 0 ;
+seja ultimoTempo = 0 ;
+seja tempoAcumulado = 0 ;
+
+const duracoes = {
+NS : 12 ,
+NS_AMARELO : 3 ,
+EW : 12 ,
+EW_YELLOW : 3 ,
+PED : 6
+} ;
+
+// Referências aos elementos HTML
+const estado = documento . getElementById ( "estado" ) ;
+const contador = document.getElementById ( " contador " ) ;
+const mensagem = documento . getElementById ( "mensagem" ) ;
+const quantidade = documento . getElementById ( "veículos" ) ;
+const travessias = documento . getElementById ( "travessias" ) ;
+
+const carros = [
+documento.querySelector ( ". carro1 " ) ,
+documento.querySelector ( ". carro2 " ) ,
+documento.querySelector ( ". carro3 " ) ,
+documento.querySelector ( ". carro4 " )
+] ;
+
+const pede = [
+documento.querySelector ( ". pedestre1 " ) ,
