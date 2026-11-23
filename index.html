@@ -1,33 +1,187 @@
-<!DOCTYPE html >
-< html lang =" pt-BR " >
-< cabeçalho >
-< meta charset =" UTF-8 " >
-< meta name =" viewport " content =" width=device-width, initial-scale=1.0 " >
-< title > Simulador de Trânsito Inteligente </ title >
-< link rel =" stylesheet " href =" style.css " >
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Simulador de Trânsito Inteligente">
+    <title>Simulador de Trânsito Inteligente</title>
+    <link rel="stylesheet" href="style.css">
 </head>
-< corpo >
+<body>
 
-< cabeçalho >
-< h1 > 🚦 Simulador de Trânsito Inteligente </ h1 >
-< p > Projeto de Desenvolvimento de Sistemas </ p >
-</ cabeçalho >
+    <header class="topo">
+        <div>
+            <span class="subtitulo">PROJETO DE DESENVOLVIMENTO DE SISTEMAS</span>
+            <h1>🚦 Trânsito Inteligente</h1>
+            <p>Simulador de cruzamento com controle automático de tráfego</p>
+        </div>
+        <div class="status-geral">
+            <span class="bolinha"></span>
+            SISTEMA OPERACIONAL
+        </div>
+    </header>
 
-< principal >
-< section class =" painel " >
-< h2 > Painel de Controle </ h2 >
+    <main class="container">
 
-< div class =" botos " >
-< botão id =" iniciar " > ▶ Iniciar </ botão >
-< button id =" pausar " > ⏸ Pausar </ botão >
-< button id =" reiniciar " > ↻ Reiniciar </ button >
-< button id =" solicitar " > 🚶 Solicitar travessia </ button >
-</div>
+        <section class="painel-controles">
+            <div class="titulo-secao">
+                <h2>Painel de controle</h2>
+                <span id="statusSistema">Aguardando início</span>
+            </div>
 
-< div class =" informações " >
-< p > Semáforo: < strong id =" estado " > VERDE </ forte > </ p >
-<p> Tempo restante: < strong id =" tempo " > 12 </ strong > segundos < / p >
-< p > Pedestres: < strong id =" pedestres " > Aguardando </ strong > </ p >
-< p > Simulação: < strong id =" status " > Parada </ strong > </ p >
-</div>
-</ seção >
+            <div class="botoes">
+                <button id="btnIniciar" class="btn iniciar">
+                    ▶ Iniciar
+                </button>
+
+                <button id="btnPausar" class="btn pausar">
+                    ⏸ Pausar
+                </button>
+
+                <button id="btnReiniciar" class="btn reiniciar">
+                    ↻ Reiniciar
+                </button>
+
+                <button id="btnPedestre" class="btn pedestre">
+                    🚶 Solicitar travessia
+                </button>
+            </div>
+        </section>
+
+        <section class="indicadores">
+            <article class="indicador">
+                <span>🚗</span>
+                <div>
+                    <small>Veículos</small>
+                    <strong id="totalVeiculos">6</strong>
+                </div>
+            </article>
+
+            <article class="indicador">
+                <span>🚶</span>
+                <div>
+                    <small>Pedestres</small>
+                    <strong id="totalPedestres">0</strong>
+                </div>
+            </article>
+
+            <article class="indicador">
+                <span>⏱️</span>
+                <div>
+                    <small>Tempo restante</small>
+                    <strong id="contador">15s</strong>
+                </div>
+            </article>
+
+            <article class="indicador">
+                <span>🚦</span>
+                <div>
+                    <small>Semáforo</small>
+                    <strong id="estadoSemaforo">VERDE</strong>
+                </div>
+            </article>
+        </section>
+
+        <section class="area-simulacao">
+            <div class="titulo-secao">
+                <div>
+                    <h2>Cruzamento principal</h2>
+                    <p>Visualização em tempo real</p>
+                </div>
+                <span class="etiqueta" id="faseAtual">Via horizontal liberada</span>
+            </div>
+
+            <div class="cidade" id="cidade">
+
+                <div class="grama"></div>
+
+                <div class="rua rua-horizontal">
+                    <div class="linha linha-horizontal"></div>
+                </div>
+
+                <div class="rua rua-vertical">
+                    <div class="linha linha-vertical"></div>
+                </div>
+
+                <div class="faixa faixa-topo"></div>
+                <div class="faixa faixa-baixo"></div>
+                <div class="faixa faixa-esquerda"></div>
+                <div class="faixa faixa-direita"></div>
+
+                <div class="calcada calcada-topo"></div>
+                <div class="calcada calcada-baixo"></div>
+
+                <div class="semaforo semaforo-topo">
+                    <div class="luz vermelha" id="luzTopoVermelha"></div>
+                    <div class="luz amarela" id="luzTopoAmarela"></div>
+                    <div class="luz verde" id="luzTopoVerde"></div>
+                </div>
+
+                <div class="semaforo semaforo-direita">
+                    <div class="luz vermelha" id="luzDireitaVermelha"></div>
+                    <div class="luz amarela" id="luzDireitaAmarela"></div>
+                    <div class="luz verde" id="luzDireitaVerde"></div>
+                </div>
+
+                <div class="semaforo semaforo-baixo">
+                    <div class="luz vermelha" id="luzBaixoVermelha"></div>
+                    <div class="luz amarela" id="luzBaixoAmarela"></div>
+                    <div class="luz verde" id="luzBaixoVerde"></div>
+                </div>
+
+                <div class="semaforo semaforo-esquerda">
+                    <div class="luz vermelha" id="luzEsquerdaVermelha"></div>
+                    <div class="luz amarela" id="luzEsquerdaAmarela"></div>
+                    <div class="luz verde" id="luzEsquerdaVerde"></div>
+                </div>
+
+                <div id="veiculos"></div>
+                <div id="pedestres"></div>
+
+                <div class="centro-cruzamento">
+                    <span>TRÂNSITO<br>INTELIGENTE</span>
+                </div>
+
+            </div>
+        </section>
+
+        <section class="informacoes">
+            <article class="card-info">
+                <h3>🚦 Situação do trânsito</h3>
+                <p id="mensagemTransito">
+                    Inicie a simulação para acompanhar o trânsito.
+                </p>
+            </article>
+
+            <article class="card-info">
+                <h3>🚶 Travessia de pedestres</h3>
+                <p id="mensagemPedestre">
+                    Nenhuma solicitação de travessia.
+                </p>
+            </article>
+
+            <article class="card-info">
+                <h3>📊 Funcionamento</h3>
+                <p id="mensagemFuncionamento">
+                    O sistema controla os semáforos automaticamente.
+                </p>
+            </article>
+        </section>
+
+        <section class="legenda">
+            <h3>Legenda dos semáforos</h3>
+            <div><span class="legenda-luz vermelho"></span> Pare</div>
+            <div><span class="legenda-luz amarelo"></span> Atenção</div>
+            <div><span class="legenda-luz verde-legenda"></span> Siga</div>
+        </section>
+
+        <footer>
+            <p>Projeto escolar • Ensino Médio Técnico em Desenvolvimento de Sistemas</p>
+            <p>Grupo: ____________________ | Tema 02</p>
+        </footer>
+
+    </main>
+
+    <script src="script.js"></script>
+</body>
+</html>

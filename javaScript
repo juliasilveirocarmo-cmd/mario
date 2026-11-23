@@ -1,39 +1,741 @@
-// ==========================================
+
+// ============================================
 // SIMULADOR DE TRÂNSITO INTELIGENTE
-// Projeto: Tema 2
-// ==========================================
+// Projeto: Tema 02
+// ============================================
 
-// 1. VARIÁVEIS DO SISTEMA
+// ELEMENTOS HTML
+const cidade = document.getElementById("cidade");
+const areaVeiculos = document.getElementById("veiculos");
+const areaPedestres = document.getElementById("pedestres");
 
-let máquina = false ;
-let fase = "NS" ;
-let tempoRestante = 12 ;
-let solicitaçãoPedestre = false ;
-seja totalTravessias = 0 ;
-seja ultimoTempo = 0 ;
-seja tempoAcumulado = 0 ;
+const contador = document.getElementById("contador");
+const estadoSemaforo = document.getElementById("estadoSemaforo");
+const statusSistema = document.getElementById("statusSistema");
 
-const duracoes = {
-NS : 12 ,
-NS_AMARELO : 3 ,
-EW : 12 ,
-EW_YELLOW : 3 ,
-PED : 6
-} ;
+const mensagemTransito = document.getElementById("mensagemTransito");
+const mensagemPedestre = document.getElementById("mensagemPedestre");
+const mensagemFuncionamento = document.getElementById("mensagemFuncionamento");
 
-// Referências aos elementos HTML
-const estado = documento . getElementById ( "estado" ) ;
-const contador = document.getElementById ( " contador " ) ;
-const mensagem = documento . getElementById ( "mensagem" ) ;
-const quantidade = documento . getElementById ( "veículos" ) ;
-const travessias = documento . getElementById ( "travessias" ) ;
+const totalVeiculos = document.getElementById("totalVeiculos");
+const totalPedestres = document.getElementById("totalPedestres");
+const faseAtual = document.getElementById("faseAtual");
 
-const carros = [
-documento.querySelector ( ". carro1 " ) ,
-documento.querySelector ( ". carro2 " ) ,
-documento.querySelector ( ". carro3 " ) ,
-documento.querySelector ( ". carro4 " )
-] ;
+// BOTÕES
+const btnIniciar = document.getElementById("btnIniciar");
+const btnPausar = document.getElementById("btnPausar");
+const btnReiniciar = document.getElementById("btnReiniciar");
+const btnPedestre = document.getElementById("btnPedestre");
 
-const pede = [
-documento.querySelector ( ". pedestre1 " ) ,
+// VARIÁVEIS DO SISTEMA
+let executando = false;
+let fase = "horizontal";
+let tempoRestante = 15;
+let solicitacaoPedestre = false;
+let pedestres = [];
+let veiculos = [];
+let ultimoTempo = 0;
+let acumulador = 0;
+let ultimoQuadro = 0;
+
+// CONFIGURAÇÕES
+const TEMPO_VERDE = 15;
+const TEMPO_AMARELO = 3;
+const TEMPO_PEDESTRE = 7;
+const VELOCIDADE = 85;
+
+// ============================================
+// CRIAÇÃO DOS VEÍCULOS
+// ============================================
+
+function criarVeiculos() {
+
+    areaVeiculos.innerHTML = "";
+    veiculos = [];
+
+    const cores = [
+        "#2563eb",
+        "#dc2626",
+        "#f59e0b",
+        "#9333ea",
+        "#0891b2",
+        "#e11d48"
+    ];
+
+    for (let i = 0; i < 6; i++) {
+
+        const carro = document.createElement("div");
+
+        carro.classList.add("carro");
+
+        carro.style.background = cores[i];
+        carro.textContent = "🚗";
+
+        const horizontal = i < 3;
+
+        carro.classList.add(
+            horizontal ? "horizontal" : "vertical"
+        );
+
+        areaVeiculos.appendChild(carro);
+
+        veiculos.push({
+            elemento: carro,
+            direcao: horizontal ? "horizontal" : "vertical",
+            posicao: horizontal
+                ? -i * 150 - 70
+                : - (i - 3) * 115 - 70
+        });
+
+    }
+
+    totalVeiculos.textContent = veiculos.length;
+
+    atualizarPosicaoVeiculos();
+}
+
+// ============================================
+// POSICIONAMENTO DOS VEÍCULOS
+// ============================================
+
+function atualizarPosicaoVeiculos() {
+
+    const largura = cidade.clientWidth;
+    const altura = cidade.clientHeight;
+
+    veiculos.forEach(carro => {
+
+        if (carro.direcao === "horizontal") {
+
+            carro.elemento.style.left =
+                carro.posicao + "px";
+
+            carro.elemento.style.top = "45%";
+
+        } else {
+
+            carro.elemento.style.left = "55%";
+
+            carro.elemento.style.top =
+                carro.posicao + "px";
+
+        }
+
+    });
+
+}
+
+// ============================================
+// CONTROLE DOS SEMÁFOROS
+// ============================================
+
+function desligarLuzes() {
+
+    document.querySelectorAll(".luz").forEach(luz => {
+        luz.classList.remove("acesa");
+    });
+
+}
+
+function acenderSemaforo(tipo) {
+
+    desligarLuzes();
+
+    const horizontal =
+        tipo === "horizontal" ||
+        tipo === "amareloHorizontal";
+
+    const vertical =
+        tipo === "vertical" ||
+        tipo === "amareloVertical";
+
+    let cor = "vermelha";
+
+    if (tipo === "horizontal") cor = "verde";
+    if (tipo === "vertical") cor = "verde";
+
+    if (tipo === "amareloHorizontal") cor = "amarela";
+    if (tipo === "amareloVertical") cor = "amarela";
+
+    const ladosHorizontais = [
+        "luzTopo",
+        "luzBaixo"
+    ];
+
+    const ladosVerticais = [
+        "luzDireita",
+        "luzEsquerda"
+    ];
+
+    // Os semáforos de cada sentido funcionam juntos.
+    if (horizontal) {
+
+        ladosHorizontais.forEach(lado => {
+            document.getElementById(
+                lado + "Vermelha"
+            ).classList.remove("acesa");
+
+            document.getElementById(
+                lado + "Verde"
+            ).classList.add("acesa");
+
+            document.getElementById(
+                lado + "Amarela"
+            ).classList.remove("acesa");
+        });
+
+        ladosVerticais.forEach(lado => {
+            document.getElementById(
+                lado + "Vermelha"
+            ).classList.add("acesa");
+        });
+
+    } else if (vertical) {
+
+        ladosVerticais.forEach(lado => {
+            document.getElementById(
+                lado + "Vermelha"
+            ).classList.remove("acesa");
+
+            document.getElementById(
+                lado + "Verde"
+            ).classList.add("acesa");
+
+            document.getElementById(
+                lado + "Amarela"
+            ).classList.remove("acesa");
+        });
+
+        ladosHorizontais.forEach(lado => {
+            document.getElementById(
+                lado + "Vermelha"
+            ).classList.add("acesa");
+        });
+
+    } else {
+
+        // Todos os sentidos ficam vermelhos
+        document.querySelectorAll(
+            ".luz.vermelha"
+        ).forEach(luz => luz.classList.add("acesa"));
+
+    }
+
+    if (tipo === "amareloHorizontal") {
+
+        ladosHorizontais.forEach(lado => {
+
+            document.getElementById(
+                lado + "Verde"
+            ).classList.remove("acesa");
+
+            document.getElementById(
+                lado + "Amarela"
+            ).classList.add("acesa");
+
+        });
+
+    }
+
+    if (tipo === "amareloVertical") {
+
+        ladosVerticais.forEach(lado => {
+
+            document.getElementById(
+                lado + "Verde"
+            ).classList.remove("acesa");
+
+            document.getElementById(
+                lado + "Amarela"
+            ).classList.add("acesa");
+
+        });
+
+    }
+
+}
+
+// ============================================
+// MUDANÇA DE FASES
+// ============================================
+
+function mudarFase(novaFase) {
+
+    fase = novaFase;
+
+    if (fase === "horizontal") {
+
+        tempoRestante = TEMPO_VERDE;
+
+        acenderSemaforo("horizontal");
+
+        faseAtual.textContent =
+            "Via horizontal liberada";
+
+        estadoSemaforo.textContent = "VERDE";
+
+        mensagemTransito.textContent =
+            "Veículos da via horizontal podem avançar.";
+
+    }
+
+    else if (fase === "amareloHorizontal") {
+
+        tempoRestante = TEMPO_AMARELO;
+
+        acenderSemaforo("amareloHorizontal");
+
+        faseAtual.textContent =
+            "Atenção: via horizontal";
+
+        estadoSemaforo.textContent = "AMARELO";
+
+        mensagemTransito.textContent =
+            "Atenção! Os veículos devem parar.";
+
+    }
+
+    else if (fase === "vertical") {
+
+        tempoRestante = TEMPO_VERDE;
+
+        acenderSemaforo("vertical");
+
+        faseAtual.textContent =
+            "Via vertical liberada";
+
+        estadoSemaforo.textContent = "VERDE";
+
+        mensagemTransito.textContent =
+            "Veículos da via vertical podem avançar.";
+
+    }
+
+    else if (fase === "amareloVertical") {
+
+        tempoRestante = TEMPO_AMARELO;
+
+        acenderSemaforo("amareloVertical");
+
+        faseAtual.textContent =
+            "Atenção: via vertical";
+
+        estadoSemaforo.textContent = "AMARELO";
+
+        mensagemTransito.textContent =
+            "Atenção! Os veículos devem parar.";
+
+    }
+
+    else if (fase === "pedestre") {
+
+        tempoRestante = TEMPO_PEDESTRE;
+
+        acenderSemaforo("pedestre");
+
+        iniciarTravessia();
+
+        faseAtual.textContent =
+            "Travessia de pedestres";
+
+        estadoSemaforo.textContent = "PEDESTRE";
+
+        mensagemTransito.textContent =
+            "Todos os veículos devem aguardar.";
+
+    }
+
+}
+
+// ============================================
+// AVANÇO AUTOMÁTICO DAS FASES
+// ============================================
+
+function proximaFase() {
+
+    if (fase === "horizontal") {
+
+        mudarFase("amareloHorizontal");
+
+    }
+
+    else if (fase === "amareloHorizontal") {
+
+        mudarFase("vertical");
+
+    }
+
+    else if (fase === "vertical") {
+
+        mudarFase("amareloVertical");
+
+    }
+
+    else if (fase === "amareloVertical") {
+
+        if (solicitacaoPedestre) {
+
+            mudarFase("pedestre");
+
+        } else {
+
+            mudarFase("horizontal");
+
+        }
+
+    }
+
+    else if (fase === "pedestre") {
+
+        solicitacaoPedestre = false;
+
+        mudarFase("horizontal");
+
+        mensagemPedestre.textContent =
+            "Travessia concluída. Aguarde a próxima solicitação.";
+
+    }
+
+}
+
+// ============================================
+// MOVIMENTAÇÃO DOS VEÍCULOS
+// ============================================
+
+function moverVeiculos(delta) {
+
+    const largura = cidade.clientWidth;
+    const altura = cidade.clientHeight;
+
+    const larguraCarro = largura * 0.054;
+    const alturaCarro = altura * 0.055;
+
+    const limiteHorizontal = largura * 0.38;
+    const limiteVertical = altura * 0.38;
+
+    veiculos.forEach((carro, indice) => {
+
+        const liberado =
+            (carro.direcao === "horizontal" &&
+             fase === "horizontal") ||
+            (carro.direcao === "vertical" &&
+             fase === "vertical");
+
+        const noCruzamento =
+            carro.direcao === "horizontal"
+                ? carro.posicao >= limiteHorizontal
+                : carro.posicao >= limiteVertical;
+
+        const tamanho =
+            carro.direcao === "horizontal"
+                ? larguraCarro
+                : alturaCarro;
+
+        const limite =
+            carro.direcao === "horizontal"
+                ? limiteHorizontal - tamanho
+                : limiteVertical - tamanho;
+
+        // Se o sinal estiver fechado, o veículo para.
+        if (!liberado && !noCruzamento) {
+
+            carro.posicao = Math.min(
+                carro.posicao,
+                limite
+            );
+
+        } else {
+
+            carro.posicao += VELOCIDADE * delta;
+
+        }
+
+        // Quando sair da tela, o veículo retorna.
+        if (carro.direcao === "horizontal") {
+
+            if (carro.posicao > largura + 20) {
+
+                carro.posicao = -larguraCarro - 30;
+
+            }
+
+        } else {
+
+            if (carro.posicao > altura + 20) {
+
+                carro.posicao = -alturaCarro - 30;
+
+            }
+
+        }
+
+        if (carro.direcao === "horizontal") {
+
+            carro.elemento.style.left =
+                carro.posicao + "px";
+
+        } else {
+
+            carro.elemento.style.top =
+                carro.posicao + "px";
+
+        }
+
+    });
+
+}
+
+// ============================================
+// SOLICITAÇÃO DE TRAVESSIA
+// ============================================
+
+function solicitarTravessia() {
+
+    if (solicitacaoPedestre || fase === "pedestre") {
+
+        mensagemPedestre.textContent =
+            "Já existe uma travessia solicitada ou em andamento.";
+
+        return;
+
+    }
+
+    solicitacaoPedestre = true;
+
+    mensagemPedestre.textContent =
+        "Solicitação registrada! Aguarde o sinal de pedestres.";
+
+    if (!executando) {
+
+        mensagemPedestre.textContent =
+            "Solicitação registrada. Inicie a simulação para liberar a travessia.";
+
+    }
+
+}
+
+// ============================================
+// CRIAÇÃO E MOVIMENTAÇÃO DOS PEDESTRES
+// ============================================
+
+function iniciarTravessia() {
+
+    areaPedestres.innerHTML = "";
+    pedestres = [];
+
+    for (let i = 0; i < 3; i++) {
+
+        const pessoa = document.createElement("div");
+
+        pessoa.classList.add("pedestre");
+        pessoa.textContent = "🚶";
+
+        areaPedestres.appendChild(pessoa);
+
+        pedestres.push({
+            elemento: pessoa,
+            posicao: -i * 32 - 20
+        });
+
+    }
+
+    totalPedestres.textContent = pedestres.length;
+
+    mensagemPedestre.textContent =
+        "Sinal aberto! Pedestres atravessando.";
+
+}
+
+function moverPedestres(delta) {
+
+    if (fase !== "pedestre") return;
+
+    const largura = cidade.clientWidth;
+
+    pedestres.forEach(pessoa => {
+
+        pessoa.posicao += 55 * delta;
+
+        pessoa.elemento.style.left =
+            (largura * 0.37 + pessoa.posicao) + "px";
+
+        pessoa.elemento.style.top = "47%";
+
+    });
+
+}
+
+// ============================================
+// CONTAGEM REGRESSIVA
+// ============================================
+
+function atualizarContador() {
+
+    contador.textContent =
+        Math.ceil(tempoRestante) + "s";
+
+}
+
+// ============================================
+// LOOP PRINCIPAL DA ANIMAÇÃO
+// ============================================
+
+function animar(tempoAtual) {
+
+    if (!executando) return;
+
+    const delta = Math.min(
+        (tempoAtual - ultimoQuadro) / 1000 || 0,
+        0.05
+    );
+
+    ultimoQuadro = tempoAtual;
+
+    acumulador += delta;
+
+    moverVeiculos(delta);
+    moverPedestres(delta);
+
+    // Atualiza o tempo a cada segundo.
+    while (acumulador >= 1) {
+
+        acumulador -= 1;
+
+        tempoRestante--;
+
+        if (tempoRestante <= 0) {
+
+            proximaFase();
+
+        }
+
+        atualizarContador();
+
+    }
+
+    requestAnimationFrame(animar);
+
+}
+
+// ============================================
+// BOTÃO INICIAR
+// ============================================
+
+function iniciarSimulacao() {
+
+    if (executando) return;
+
+    executando = true;
+
+    ultimoQuadro = performance.now();
+
+    statusSistema.textContent = "Simulação em execução";
+
+    mensagemFuncionamento.textContent =
+        "O JavaScript está controlando os veículos e os semáforos.";
+
+    btnIniciar.disabled = true;
+    btnPausar.disabled = false;
+
+    requestAnimationFrame(animar);
+
+}
+
+// ============================================
+// BOTÃO PAUSAR
+// ============================================
+
+function pausarSimulacao() {
+
+    executando = false;
+
+    statusSistema.textContent = "Simulação pausada";
+
+    mensagemFuncionamento.textContent =
+        "A animação foi pausada. Os veículos e os semáforos estão aguardando.";
+
+    btnIniciar.disabled = false;
+    btnPausar.disabled = true;
+
+}
+
+// ============================================
+// BOTÃO REINICIAR
+// ============================================
+
+function reiniciarSimulacao() {
+
+    executando = false;
+
+    solicitacaoPedestre = false;
+
+    acumulador = 0;
+
+    tempoRestante = TEMPO_VERDE;
+
+    areaPedestres.innerHTML = "";
+
+    pedestres = [];
+
+    totalPedestres.textContent = 0;
+
+    criarVeiculos();
+
+    mudarFase("horizontal");
+
+    contador.textContent = TEMPO_VERDE + "s";
+
+    statusSistema.textContent = "Simulação reiniciada";
+
+    mensagemPedestre.textContent =
+        "Nenhuma solicitação de travessia.";
+
+    mensagemFuncionamento.textContent =
+        "Sistema reiniciado. Clique em iniciar.";
+
+    btnIniciar.disabled = false;
+    btnPausar.disabled = true;
+
+}
+
+// ============================================
+// EVENTOS DOS BOTÕES
+// ============================================
+
+btnIniciar.addEventListener(
+    "click",
+    iniciarSimulacao
+);
+
+btnPausar.addEventListener(
+    "click",
+    pausarSimulacao
+);
+
+btnReiniciar.addEventListener(
+    "click",
+    reiniciarSimulacao
+);
+
+btnPedestre.addEventListener(
+    "click",
+    solicitarTravessia
+);
+
+// ============================================
+// INICIALIZAÇÃO DO SISTEMA
+// ============================================
+
+criarVeiculos();
+
+mudarFase("horizontal");
+
+btnPausar.disabled = true;
+
+contador.textContent = TEMPO_VERDE + "s";
+
+statusSistema.textContent = "Aguardando início";
+
+console.log(
+    "Simulador de Trânsito Inteligente iniciado!"
+);
